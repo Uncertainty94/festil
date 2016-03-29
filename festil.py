@@ -3,10 +3,12 @@
 key = int('0b1001011010100010011001100010111010010110111110100011011000101111', 2)
 
 
+# Returned new key32 from key64, by cyclic shift for triple steps.
 def get_new_key(step):
     return circle(key, step*3, 64) / 2**32
 
 
+# Function specific to option 1.
 def func(part):
     left = part / 2**16
     right = part % 2**16
@@ -14,9 +16,11 @@ def func(part):
     right = circle(right, -11, 16)
     full = bin(left)+bin(right)[2:]
     return int(full, 2)
-    # return part ^ 2**32-1
 
 
+# Method to make cyclic shift.
+# num > 0 - circle left, num < 0 - circle right.
+# bit_count - the number of bits of the original string.
 def circle(row, num, bit_count):
     if num > 0:
         return (row << num | row >> (bit_count-num)) % 2**bit_count
@@ -24,12 +28,14 @@ def circle(row, num, bit_count):
     return (row >> num | row << (bit_count-num)) % 2**bit_count
 
 
+# Returns string of bin code. Adds '0' before the code to complete it to full byte.
 def get_bin_code(symb):
     code = bin(ord(symb))
     code = code[2:len(code)]
     return "0" * (8 - len(code)) + code
 
 
+# Returns string from binaries32.
 def get_str_from_num(num):
     result = []
     for i in range(0, 4):
@@ -39,6 +45,7 @@ def get_str_from_num(num):
     return ''.join(result)
 
 
+# Returns list of blocks of 4 chars (=== 32 bits). Adds '0' at the end of row to complete it to full bytes.
 def get_list_blocks(row):
     result = []
     length = len(row)
@@ -49,10 +56,11 @@ def get_list_blocks(row):
     return result
 
 
-def work_with_a_block(part):
-    print '~~~~~~~~~~~~~~~~~~~Work with block~~~~~~~~~~~~~~~~~~~~'
+# Encrypting one block.
+# Returns string of 4 encrypted chars (=== 32bits).
+def encrypting_block(part):
     parts = [part[0:len(part) / 2], part[len(part) / 2:len(part)]]
-    print parts
+    # print parts
     bin_left = ''
     bin_right = ''
 
@@ -62,8 +70,7 @@ def work_with_a_block(part):
     for char in parts[1]:
         bin_right += get_bin_code(char)
 
-    print bin_left, '---', bin_right
-
+    # print bin_left, '---', bin_right
     left = int('0b'+bin_left, 2)
     right = int('0b'+bin_right, 2)
 
@@ -73,15 +80,15 @@ def work_with_a_block(part):
         left = new_left
         right = new_right
 
-    print bin(left), '---', bin(right)
-    print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+    # print bin(left), '---', bin(right)
     return get_str_from_num(left)+get_str_from_num(right)
 
 
-def work_with_a_block_inverse(part):
-    print '~~~~~~~~~~~~~~~~~~~Work with block inverse~~~~~~~~~~~~~~~~~~~~'
+# Decrypting one block.
+# Returns string of 4 decrypted chars (=== 32bits).
+def decrypting_block(part):
     parts = [part[0:len(part) / 2], part[len(part) / 2:len(part)]]
-    print parts
+    # print parts
     bin_left = ''
     bin_right = ''
 
@@ -91,8 +98,7 @@ def work_with_a_block_inverse(part):
     for char in parts[1]:
         bin_right += get_bin_code(char)
 
-    print bin_left, '---', bin_right
-
+    # print bin_left, '---', bin_right
     left = int('0b'+bin_left, 2)
     right = int('0b'+bin_right, 2)
 
@@ -102,35 +108,50 @@ def work_with_a_block_inverse(part):
         left = new_left
         right = new_right
 
-    print bin(left), '---', bin(right)
-    print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+    # print bin(left), '---', bin(right)
     return get_str_from_num(left)+get_str_from_num(right)
 
 
-input_file = open("input.txt", "r")
-output_file = open("encrypted.txt", "w")
+# Start of encrypting.
+def encrypt():
+    # Init files to encrypt.
+    input_file_to_encrypting = open("input.txt", "r")
+    output_file_to_encrypting = open("encrypted.txt", "w")
 
-line = input_file.read()
-blocks = get_list_blocks(line)
-print blocks
-outstr = ''
-for block in blocks:
-    outstr = work_with_a_block(block)
-    output_file.write(outstr)
+    original_text = input_file_to_encrypting.read()
+    original_blocks = get_list_blocks(original_text)
 
-input_file.close()
-output_file.close()
+    # String of encrypted block. Needs to CBC.
+    encrypted_block = ''
+    for block in original_blocks:
+        encrypted_block = encrypting_block(block)
+        output_file_to_encrypting.write(encrypted_block)
 
-input_file = open("encrypted.txt", "r")
-output_file = open("decrypted.txt", "w")
+    # Close files.
+    input_file_to_encrypting.close()
+    output_file_to_encrypting.close()
 
-line = input_file.read()
-blocks2 = get_list_blocks(line)
-print blocks2
-outstr2 = ''
-for block in blocks2:
-    outstr2 = work_with_a_block_inverse(block)
-    output_file.write(outstr2)
 
-input_file.close()
-output_file.close()
+# Start of decrypting.
+def decrypt():
+    # Init files to decrypt.
+    input_file_to_decrypting = open("encrypted.txt", "r")
+    output_file_to_decrypting = open("decrypted.txt", "w")
+
+    encrypted_text = input_file_to_decrypting.read()
+    encrypted_blocks = get_list_blocks(encrypted_text)
+
+    # String of decrypted block. Needs to CBC.
+    decrypted_block = ''
+    for block in encrypted_blocks:
+        decrypted_block = decrypting_block(block)
+        output_file_to_decrypting.write(decrypted_block)
+
+    # Close files.
+    input_file_to_decrypting.close()
+    output_file_to_decrypting.close()
+
+
+encrypt()
+
+decrypt()
