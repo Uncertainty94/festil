@@ -108,7 +108,7 @@ def work_with_a_block_inverse(part):
 
 
 input_file = open("input.txt", "r")
-output_file = open("output.txt", "w")
+output_file = open("encrypted.txt", "w")
 
 line = input_file.read()
 blocks = get_list_blocks(line)
@@ -121,8 +121,8 @@ for block in blocks:
 input_file.close()
 output_file.close()
 
-input_file = open("output.txt", "r")
-output_file = open("output2.txt", "w")
+input_file = open("encrypted.txt", "r")
+output_file = open("decrypted.txt", "w")
 
 line = input_file.read()
 blocks2 = get_list_blocks(line)
